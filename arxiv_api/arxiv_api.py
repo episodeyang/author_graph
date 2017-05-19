@@ -34,13 +34,23 @@ CATEGORIES = ["stat.AP", "stat.CO", "stat.ML", "stat.ME", "stat.TH", "q-bio.BM",
 
 
 # TODO: Do I want to support boolean operators?
-# TODO: Do I want to add support for quotes to group words/order of ops?
-def query(s, prune=True, start=0, max_results=10):
+# DONE: support keyword inputs.
+def query(search_query=None, id_list=None, start=0, max_results=10, prune=True):
     # Gets a list of top results, each of which is a dict
     # NOTE: https://arxiv.org/help/api/user-manual#query_details
-    results = feedparser.parse(
-        API_ROOT_URI + 'query?search_query=' + quote_plus(s) + '&start=' + str(start) + '&max_results=' + str(
-            max_results))
+    query_list = []
+    if search_query:
+        query_list.append("search_query={}".format(quote_plus(search_query)))
+    if id_list:
+        query_list.append("id_list={}".format(','.join(id_list)))
+    if start is not None:
+        query_list.append("start={}".format(start))
+    if max_results is not None:
+        query_list.append("max_results={}".format(int(max_results)))
+
+    query_string = API_ROOT_URI + 'query?{}'.format('&amp;'.join(query_list))
+    # print(query_string)
+    results = feedparser.parse(query_string)
     if results.get('status') != 200:
         # TODO: better error reporting
         raise Exception("HTTP Error " + str(results.get('status', 'no status')) + " in query")
